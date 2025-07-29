@@ -12,6 +12,12 @@ target_link_libraries(universal_benchmark
     PRIVATE pcg
 )
 
+if(UNIVERSAL_TABLE STREQUAL "TBB_CONCURRENT_MAP")
+    target_link_libraries(universal_benchmark
+        PRIVATE tbb
+    )
+endif()
+
 target_compile_options(universal_benchmark
     PRIVATE -DKEY=${UNIVERSAL_KEY}
     PRIVATE -DVALUE=${UNIVERSAL_VALUE}

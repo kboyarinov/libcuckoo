@@ -171,8 +171,52 @@ private:
       tbl;
 };
 
+#elif defined(TBB_CONCURRENT_MAP)
+#define TABLE "TBB_CONCURRENT_MAP"
+#define TABLE_TYPE "tbb_concurrent_map"
+#include <tbb/concurrent_map.h>
+#include <cassert>
+
+class Table {
+public:
+    Table(std::size_t) {}
+
+    template <typename K, typename V>
+    bool insert(const K& key, const V& value) {
+        return m_map.emplace(key, value).second;
+    }
+
+    template <typename K, typename V>
+    bool read(const K& key, V& value) {
+        auto it = m_map.find(key);
+        if (it != m_map.end()) {
+            value = it->second;
+            return true;
+        }
+        return false;
+    }
+
+    template <typename K>
+    bool erase(const K&) {
+        throw "erase should not be benchmarked";
+        return false;
+    }
+
+    template <typename K, typename Updater, typename V>
+    void upsert(const K&, Updater, const V&) {
+        throw "upsert should not be benchmarked";
+    }
+
+    template <typename K, typename V>
+    bool update(const K&, const V&) {
+        throw "update should not be benchmarked";
+        return false;
+    }
+private:
+    tbb::concurrent_map<KEY, VALUE> m_map;
+};
 #else
-#error Must define LIBCUCKOO
+#error "Unsupported container type"
 #endif
 
 #endif // _UNIVERSAL_TABLE_WRAPPER_HH
