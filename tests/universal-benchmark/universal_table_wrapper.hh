@@ -172,11 +172,13 @@ private:
 };
 
 #elif defined(TBB_CONCURRENT_MAP) || defined (TBB_CONCURRENT_UNORDERED_MAP)
+#ifdef TBB_CONCURRENT_MAP
 #define TABLE "TBB_CONCURRENT_MAP"
 #define TABLE_TYPE "tbb_concurrent_map"
-#ifdef TBB_CONCURRENT_MAP
 #include <tbb/concurrent_map.h>
 #else
+#define TABLE "TBB_CONCURRENT_UNORDERED_MAP"
+#define TABLE_TYPE "tbb_concurrent_unordered_map"
 #include <tbb/concurrent_unordered_map.h>
 #endif
 #include <cassert>
@@ -227,6 +229,47 @@ private:
     tbb::concurrent_map<KEY, VALUE> m_map;
 #endif
 };
+#elif defined(TBB_CONCURRENT_HASH_MAP)
+#include <tbb/concurrent_hash_map.h>
+#define TABLE "TBB_CONCURRENT_HASH_MAP"
+#define TABLE_TYPE "tbb_concurrent_hash_map"
+
+class Table {
+public:
+    Table(std::size_t value) : m_map(value) {}
+
+    template <typename K, typename V>
+    bool insert(const K& key, const V& value) {
+        return m_map.emplace(key, value);
+    }
+
+    template <typename K, typename V>
+    bool read(const K& key, V& value) {
+        tbb::concurrent_hash_map<KEY, VALUE>::const_accessor acc;
+        bool result = m_map.find(acc, key);
+        value = acc->second;
+        return result;
+    }
+
+    template <typename K>
+    bool erase(const K& key) {
+        return m_map.erase(key);
+    }
+
+    template <typename K, typename Updater, typename V>
+    void upsert(const K&, Updater, const V&) {
+        throw "upsert should not be benchmarked";
+    }
+
+    template <typename K, typename V>
+    bool update(const K&, const V&) {
+        throw "update should not be benchmarked";
+        return false;
+    }
+private:
+    tbb::concurrent_hash_map<KEY, VALUE> m_map;
+};
+
 #else
 #error "Unsupported container type"
 #endif
