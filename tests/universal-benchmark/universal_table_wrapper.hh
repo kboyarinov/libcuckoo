@@ -171,15 +171,23 @@ private:
       tbl;
 };
 
-#elif defined(TBB_CONCURRENT_MAP)
+#elif defined(TBB_CONCURRENT_MAP) || defined (TBB_CONCURRENT_UNORDERED_MAP)
 #define TABLE "TBB_CONCURRENT_MAP"
 #define TABLE_TYPE "tbb_concurrent_map"
+#ifdef TBB_CONCURRENT_MAP
 #include <tbb/concurrent_map.h>
+#else
+#include <tbb/concurrent_unordered_map.h>
+#endif
 #include <cassert>
 
 class Table {
 public:
-    Table(std::size_t) {}
+    Table(std::size_t value)
+#ifdef TBB_CONCURRENT_UNORDERED_MAP
+      : m_map(value)
+#endif
+    {}
 
     template <typename K, typename V>
     bool insert(const K& key, const V& value) {
@@ -213,7 +221,11 @@ public:
         return false;
     }
 private:
+#ifdef TBB_CONCURRENT_UNORDERED_MAP
+    tbb::concurrent_unordered_map<KEY, VALUE> m_map;
+#else
     tbb::concurrent_map<KEY, VALUE> m_map;
+#endif
 };
 #else
 #error "Unsupported container type"

@@ -12,7 +12,7 @@ target_link_libraries(universal_benchmark
     PRIVATE pcg
 )
 
-if(UNIVERSAL_TABLE STREQUAL "TBB_CONCURRENT_MAP")
+if(UNIVERSAL_TABLE STREQUAL "TBB_CONCURRENT_MAP" OR UNIVERSAL_TABLE STREQUAL "TBB_CONCURRENT_UNORDERED_MAP")
     target_link_libraries(universal_benchmark
         PRIVATE tbb
     )
